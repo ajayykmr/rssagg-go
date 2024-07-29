@@ -27,4 +27,4 @@ go.work
 rssagg-go
 
 # Environment Parameter
-# .env
+.env
