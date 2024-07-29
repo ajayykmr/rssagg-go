@@ -19,3 +19,12 @@
 
 # Go workspace file
 go.work
+
+# Mac
+.DS_Store
+
+# Executable
+rssagg-go
+
+# Environment Parameter
+# .env
