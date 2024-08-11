@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"rssagg-go/internal/database"
@@ -66,6 +67,10 @@ func (apiCfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Reques
 	}
 
 	respondWithJSON(w, 201, databaseFeedToFeed(feed))
+
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+	go scrapeFeed(apiCfg.DB, wg, feed)
 }
 
 func (apiCfg *apiConfig) handlerDeleteFeed(w http.ResponseWriter, r *http.Request, user database.User) {

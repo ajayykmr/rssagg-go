@@ -86,7 +86,7 @@ func main() {
 
 	srv := &http.Server{
 		Handler: router,
-		Addr:    "192.168.1.33:" + portString,
+		Addr:    ":" + portString,
 	}
 
 	log.Printf("Server starting on port: %v", portString)

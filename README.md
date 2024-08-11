@@ -1,6 +1,10 @@
 # rssagg-go
-
 An RSS aggregator developed in Golang.
+
+# Sample RSS Feeds Included:
+https://www.wagslane.dev/index.xml
+https://abcnews.go.com/abcnews/usheadlines
+
 
 ## Programming Language 
 
