@@ -10,6 +10,7 @@ import (
 	"rssagg-go/internal/database"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -19,7 +20,7 @@ func (apiCfg *apiConfig) handlerSignUp(w http.ResponseWriter, r *http.Request) {
 	//get email/password From body
 	type parameters struct {
 		Email    string `json:"email" validate:"required,email"`
-		Password string `json:"password"`
+		Password string `json:"password" validate:"required,min=6"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -30,10 +31,24 @@ func (apiCfg *apiConfig) handlerSignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	validate := validator.New()
+	if err := validate.Struct(params); err != nil {
+		respondWithError(w, http.StatusBadRequest, fmt.Sprintf("%v", err))
+		return
+	}
+
 	//Hash the password
 	hash, err := bcrypt.GenerateFromPassword([]byte(params.Password), bcrypt.DefaultCost)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("Error hashing password: %v", err))
+	}
+
+	//check if user exists
+	existingUser, err := apiCfg.DB.GetUserByEmail(r.Context(), params.Email)
+
+	if err == nil && existingUser.Email == params.Email {
+		respondWithError(w, http.StatusConflict, "Email already exists")
+		return
 	}
 
 	//Create the user
@@ -50,6 +65,7 @@ func (apiCfg *apiConfig) handlerSignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Println("User Created: ", user.Email)
 	//Respond
 	respondWithJSON(w, http.StatusCreated, databaseUserToUser(user))
 }
@@ -58,8 +74,8 @@ func (apiCfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 
 	//Get email and password from body
 	type parameters struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
+		Email    string `json:"email" validate:"required,email"`
+		Password string `json:"password" validate:"required"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -67,6 +83,12 @@ func (apiCfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(&params)
 	if err != nil {
 		respondWithError(w, 400, fmt.Sprintf("Error parsing JSON: %v", err))
+		return
+	}
+
+	validate := validator.New()
+	if err := validate.Struct(params); err != nil {
+		respondWithError(w, http.StatusBadRequest, fmt.Sprintf("%v", err))
 		return
 	}
 
