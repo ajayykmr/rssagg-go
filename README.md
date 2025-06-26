@@ -4,6 +4,9 @@ An RSS aggregator developed in Golang.
 # Sample RSS Feeds Included:
 https://www.wagslane.dev/index.xml
 https://abcnews.go.com/abcnews/usheadlines
+https://wwwcbsnews.com/latest/rss/main
+https://timesofindia.indiatimes.com/rssfeedstopstories.cms
+https://www.wired.com/feed/rss
 
 
 ## Programming Language 
@@ -21,7 +24,7 @@ https://abcnews.go.com/abcnews/usheadlines
 
 - Users
   - Create a user
-  - Get a user information
+  - Get user information
 - Feeds
   - Create a feed
   - Get all the feeds

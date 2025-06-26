@@ -65,9 +65,45 @@ func (apiCfg *apiConfig) handlerSignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("User Created: ", user.Email)
-	//Respond
-	respondWithJSON(w, http.StatusCreated, databaseUserToUser(user))
+	//Create JWT
+	secretString := os.Getenv("JWT_SECRET")
+	if secretString == "" {
+		log.Fatal("JWT_SECRET is not found in the environment")
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id": user.ID,
+		"email":   user.Email,
+		"exp":     time.Now().Add(time.Minute * 60 * 24 * 30).Unix(), // Token expiration time
+	})
+
+	tokenString, err := token.SignedString([]byte(secretString)) //FINAL JWT TOKEN STRING
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("Error signing token: %v", err))
+		return
+	}
+
+	// Set cookie or send token in response
+	http.SetCookie(w, &http.Cookie{
+		Name:     "Authorization",
+		Value:    tokenString,
+		MaxAge:   3600 * 24 * 60, //60 days
+		Secure:   false,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
+
+	//send it back
+	type response struct {
+		User
+		Token string `json:"token"`
+	}
+	res := response{
+		User:  databaseUserToUser(user),
+		Token: tokenString,
+	}
+
+	log.Println("User Signed Up: ", user.Email, user.CreatedAt)
+	respondWithJSON(w, http.StatusCreated, res)
 }
 
 func (apiCfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
@@ -153,5 +189,7 @@ func (apiCfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		User:  databaseUserToUser(user),
 		Token: tokenString,
 	}
+
+	log.Println("User Signed In: ", user.Email, user.CreatedAt)
 	respondWithJSON(w, http.StatusOK, res)
 }
