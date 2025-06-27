@@ -48,8 +48,8 @@ func main() {
 		DB: db,
 	}
 
-	concurrency := 10
-	go startScraping(apiCfg.DB, concurrency, time.Minute*5) //scraping every 5 minutes
+	concurrency := 2
+	go startScraping(apiCfg.DB, concurrency, time.Hour*24) //scraping every 5 minutes
 
 	// Set up router
 	router := chi.NewRouter()
