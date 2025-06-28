@@ -24,6 +24,9 @@ func init() {
 	// LoadEnvVariables()
 	initializers.LoadEnvVariables()
 }
+
+var startTime = time.Now() //to track uptime
+
 func main() {
 
 	// Import Port number
@@ -84,13 +87,14 @@ func main() {
 	v1Router.Get("/posts/user", apiCfg.middlewareAuth(apiCfg.handlerGetPostsForUser))
 
 	router.Mount("/v1", v1Router)
+	router.Get("/", handlerReadiness)
 
 	srv := &http.Server{
 		Handler: router,
 		Addr:    ":" + portString,
 	}
 
-	log.Printf("Server starting on port: %v", portString)
+	log.Printf("Server starting on port: http://localhost:%v", portString)
 	err = srv.ListenAndServe()
 	if err != nil {
 		log.Fatal(err)
